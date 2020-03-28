@@ -28,7 +28,7 @@ static void cluster_entry(void *arg)
   printf("Entering cluster on core %d\n", rt_core_id());
   printf("There are %d cores available here.\n", rt_nb_pe());
   // executed on master core (0)
-  // fork 8 threads that are then automatically dispatched to 8 cores
+  // fork 8 threads that are then dispatched to 8 cores by the OS
   rt_team_fork(8, hello, (void *)0x0);
   printf("Leaving cluster on core %d\n", rt_core_id());
 }
