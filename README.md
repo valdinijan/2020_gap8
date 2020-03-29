@@ -41,7 +41,7 @@ Brief description of driver functions is given below.
   - clears uDMA channels
 
 - pi_i2s_read()
-  - blocking read of 'size' data; blocks until 'size' block is received
+  - blocking read; blocks until some data becomes available in L2; returns pointer to the data and its size; if some data is already available, it returns that (returned size can be less than block size)
   - implemented with read_async(), waiting for task, read_status() to copy from task context
     to the caller's buffer
 
@@ -59,4 +59,13 @@ Brief description of driver functions is given below.
   - immediately enqueues next transer (so that there is always +1 transfer pending)
   - if there is a waiter, wakes it up
   - if there is no waiter at the moment, 
-  
+ 
+ ## v : GAP8 I2S driver - PCM from microphone use case
+ 
+  - allocate 2 256 x uint16_t buffers as globals (L2)
+  - use pi_i2s_conf_init() to initialize configuration structure
+  - modify configuration for this use case: PCM, clk 44100, enable ping-pong, word size 16 bit, 1 channel
+  - call pi_i2s_open() which will finalize config (DMA, modes, buffers)
+  - use pi_i2s_ioctl() to enable clock and start enqueueing transfers from I2S to L2
+  - use pi_i2s_read() in a loop to receive data
+ 
