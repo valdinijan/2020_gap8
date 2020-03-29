@@ -5,6 +5,26 @@ GAP8 test project
 
 Helloworld written by looking at provided example for PULP-OS. Some comments added to try to show understanding of the code.
 
+## ii : Matrix addition and multiplication
+
+### 2020_gap8/mat_add/
+Custom implementation in PULP-OS, without using autotiler. Each core works on its 1/8 of the matrix.
+
+### 2020_gap8/mat_mult/
+Custom implementation in PULP-OS, without using autotiler. Job between cores is divided along the rows of matrix 1.
+
+### 2020_gap8/mat_add_at2/
+Implementation in PMSIS, with autotiler, by reusing example provided in sdk. As sdk example is with 'int' matrix element, a modified basic kernel MatAdd16 is created with 'unsigned short' as a matrix element.
+Multiplication with autotiler is not provided, as the approach would be very similar.
+
+## iii : Convolution [TODO]
+
+Variant 1: Custom implementation.
+
+Variant 2: Modify sdk convolution example for 1x9 filter/kernel dimensions.
+
+Veriant 3: Try to do new kernel as combination of multiplication and convolution kernels. I'm assuming it is not possible to build 2 or more generated kernels within a single application.
+
 ## iv
 
 * Assumptions about the problem:
@@ -22,8 +42,6 @@ Helloworld written by looking at provided example for PULP-OS. Some comments add
     - 1 x 4kB buffer to store cluster algorithm output
 
 * Operation (without storing image in RAM):
-  - assuming clusters are able to process the feed in real time
-
   - FC:
     - FC (by blocking read) asks camera driver for next 32kB image segment; segment appears in L2
     - FC copies 32kB segment to cluster L1
@@ -39,6 +57,7 @@ Helloworld written by looking at provided example for PULP-OS. Some comments add
     - copies output from L1 to L2
 
 ### iv option 2 (real time, no RAM, always-on cluster)
+Maybe better performance then option 1, but with no shutting down the cluster.
 
 * Memory organization:
   - cluster L1: 
@@ -60,8 +79,7 @@ Helloworld written by looking at provided example for PULP-OS. Some comments add
     2. Toggles active buffer, then goes to 1
 
 ### iv option 3 (storing a full frame in RAM, then skipping frames):
-  - assuming the clusters are not able to process the feed in real time
-  - then the plan could be to store a full frame in RAM, and skip further frames until this one is processed
+Here assuming the clusters are not able to process the feed in real time. Then the plan could be to store a full frame in RAM, and skip further frames until this one is fully processed.
 
 * Memory organization:
   - L2:
@@ -85,8 +103,7 @@ Helloworld written by looking at provided example for PULP-OS. Some comments add
 ## v : GAP8 I2S driver
 
 The driver receives input PCM stream by using uDMA and stores it in buffers provided by user.
-Minimum of 2 buffers are used, so that receiving can continue while user is reading previous buffer from his side. 2 buffer modes are supported: ping-pong and ring buffer of arbitrary size.
-A blocking read is provided to the user. PMSIS task support is used to queue and wake up waiters.
+Minimum of 2 buffers are used, so that receiving can continue while user is reading previous buffer from his side. 2 buffer modes are supported: ping-pong and ring buffer of arbitrary size. A blocking read is provided to the user. PMSIS task support is used to queue and wake up waiters.
 Brief description of driver functions is given below.
 
 * pi_i2s_conf_init()
@@ -130,14 +147,19 @@ Brief description of driver functions is given below.
   - triggered by uDMA when a transfer is completed
   - immediately enqueues next transer (so that there is always +1 transfer pending)
   - if there is a waiter, wakes it up
-  - if there is no waiter at the moment, 
+  - if there is no waiter at the moment, increments nb_ready_buffer so that next user read call will return without waiting
  
- ## v : GAP8 I2S driver - PCM from microphone use case
- 
+## vi : GAP8 I2S driver - PCM from microphone use case
   - allocate 2 256 x uint16_t buffers as globals (L2)
   - use pi_i2s_conf_init() to initialize configuration structure
   - modify configuration for this use case: PCM, clk 44100, enable ping-pong, word size 16 bit, 1 channel
   - call pi_i2s_open() which will finalize config (DMA, modes, buffers)
   - use pi_i2s_ioctl() to enable clock and start enqueueing transfers from I2S to L2
   - use pi_i2s_read() in a loop to receive data
- 
+
+## vii : Debugging camera demo
+  - isolate transfer stages (camera -> L2, L2 -> L1, etc.) and debug them individually, then connect step by step
+  - print transfer counters at various nodes (FC, cores, ...) to try to identify missed transfers or bottlenecks
+  - if print is too slow or unreliable, store certain events and timestamps in debug buffer, then send it to PC or view it in the debugger
+  - if freeze-mode debugger is available, halt entire system then check if states of related components are consistent together
+  - add debug code to trigger logs or break points at particular situations of interest
