@@ -11,16 +11,17 @@ Helloworld written by looking at provided example for PULP-OS. Some comments add
 Custom implementation in PULP-OS, without using autotiler. Each core works on its 1/8 of the matrix.
 
 ### 2020_gap8/mat_mult/
-Custom implementation in PULP-OS, without using autotiler. Job between cores is divided along the rows of matrix 1.
+Custom implementation in PULP-OS, without using autotiler. Job between cores is divided along the rows of matrix 1. Also contains convolution applied to multiplication result.
 
 ### 2020_gap8/mat_add_at2/
 Implementation in PMSIS, with autotiler, by reusing example provided in sdk. As sdk example is with 'int' matrix element, a modified basic kernel MatAdd16 is created with 'unsigned short' as a matrix element.
 Multiplication with autotiler is not provided, as the approach would be very similar.
 
-## iii : Convolution [TODO]
+## iii : Convolution
+Convolution usage required in (iii) is added to 'mat_mult' application (ii).
 
 ### 2020_gap8/mat_conv/
-Standalone custom implementation.
+Standalone custom implementation without using autotiler.
 
 ## iv
 

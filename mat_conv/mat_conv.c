@@ -183,7 +183,7 @@ int main()
   {
     for (int col = 0; col < MAT_DIM; col++)
     {
-      l2_mat_in[row][col] = row + col; 
+      l2_mat_in[row][col] = row * MAT_DIM + col; 
     }
   }
 
