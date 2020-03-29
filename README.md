@@ -19,11 +19,8 @@ Multiplication with autotiler is not provided, as the approach would be very sim
 
 ## iii : Convolution [TODO]
 
-Variant 1: Custom implementation.
-
-Variant 2: Modify sdk convolution example for 1x9 filter/kernel dimensions.
-
-Veriant 3: Try to do new kernel as combination of multiplication and convolution kernels. I'm assuming it is not possible to build 2 or more generated kernels within a single application.
+### 2020_gap8/mat_conv/
+Standalone custom implementation.
 
 ## iv
 
